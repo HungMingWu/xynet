@@ -82,9 +82,9 @@ private:
   }
 
   decltype(auto) get_result()
-  noexcept (Policy::error_code_type::value)
+  noexcept (Policy::error_code_enable)
   {
-    if constexpr (Policy::error_code_type::value)
+    if constexpr (Policy::error_code_enable)
     {
       return;
     }

@@ -40,7 +40,7 @@ private:
   }
 
   decltype(auto) get_result()
-  noexcept (Policy::error_code_type::value)
+  noexcept (Policy::error_code_enable)
   {
     if (!async_operation_base::get_error_code())[[likely]]
     {
@@ -51,7 +51,7 @@ private:
     }
     else[[unlikely]]
     {
-      if constexpr (!Policy::error_code_type::value)
+      if constexpr (!Policy::error_code_enable)
       {
         throw std::system_error{async_operation_base::get_error_code()};
       }

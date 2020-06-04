@@ -25,45 +25,32 @@ concept FileDescriptorPolicyUseErrorCode
 template<FileDescriptorPolicy P, typename... Rs>
 struct file_descriptor_operation_return_type;
 
-template <FileDescriptorPolicy P, typename... Rs>
-requires (sizeof...(Rs) > 1)
-struct file_descriptor_operation_return_type<P, Rs...>
+template <FileDescriptorPolicy P, typename Head, typename... Tail>
+struct file_descriptor_operation_return_type<P, Head, Tail...> :
+        public std::conditional_t<FileDescriptorPolicyUseErrorCode<P>,
+	                          std::tuple<std::error_code, Head, Tail...>,
+				  std::tuple<Head, Tail...>>
 {
-  using type = typename std::conditional_t
-    <
-      FileDescriptorPolicyUseErrorCode<P>,
-  std::tuple<std::error_code, Rs...>,
-  std::tuple<Rs...>
-  >;
+};
+
+template <FileDescriptorPolicy P, typename Head>
+struct file_descriptor_operation_return_type<P, Head> :
+	public std::conditional_t<FileDescriptorPolicyUseErrorCode<P>,
+	                          std::tuple<std::error_code, Head>,
+				  Head>
+{
+};
+
+template <FileDescriptorPolicy P>
+struct file_descriptor_operation_return_type<P> :
+	public std::conditional_t<FileDescriptorPolicyUseErrorCode<P>,
+	                          std::error_code,
+				  void>
+{
 };
 
 template <FileDescriptorPolicy P, typename... Rs>
-requires (sizeof...(Rs) == 1)
-struct file_descriptor_operation_return_type<P, Rs...>
-{
-  using type = typename std::conditional_t
-    <
-      FileDescriptorPolicyUseErrorCode<P>,
-  std::tuple<std::error_code, Rs...>,
-  std::tuple_element_t<0, std::tuple<Rs...>>
-  >;
-};
-
-template <FileDescriptorPolicy P, typename... Rs>
-requires (sizeof...(Rs) == 0)
-struct file_descriptor_operation_return_type<P, Rs...>
-{
-  using type = typename std::conditional_t
-    <
-      FileDescriptorPolicyUseErrorCode<P>,
-  std::error_code,
-  void
-  >;
-};
-
-template <FileDescriptorPolicy P, typename... Rs>
-using file_descriptor_operation_return_type_t = 
-typename file_descriptor_operation_return_type<P, Rs...>::type;
+using file_descriptor_operation_return_type_t = file_descriptor_operation_return_type<P, Rs...>;
 
 }
 

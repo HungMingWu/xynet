@@ -112,9 +112,9 @@ struct async_sendmsg : public async_operation<Policy, async_sendmsg<Policy, F>>
     }
   }
 
-  auto get_result() noexcept (Policy::error_code_type::value) -> std::size_t
+  auto get_result() noexcept (Policy::error_code_enable) -> std::size_t
   {
-    if constexpr (Policy::error_code_type::value)
+    if constexpr (Policy::error_code_enable)
     {
       return m_bytes_transferred;
     }

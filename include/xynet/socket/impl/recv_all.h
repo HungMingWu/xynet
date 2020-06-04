@@ -16,7 +16,7 @@ namespace xynet
 template<bool enable_recv_some, typename BufferType, typename BasePolicy>
 struct async_recvmsg_policy : public BasePolicy::policy_type
 {
-  using recv_some_type = std::conditional_t<enable_recv_some, std::true_type, std::false_type>;
+  static constexpr bool recv_some = enable_recv_some;
   using buffer_type = BufferType;
 };
 
@@ -70,7 +70,7 @@ private:
   static void on_recv_completed(async_operation_base *base) noexcept
   {
     auto *op = static_cast<async_recvmsg*>(base);
-    if constexpr (Policy::recv_some_type::value)
+    if constexpr (Policy::recv_some)
     {
       auto ret = base->get_res();
       op->m_bytes_transferred = ret >= 0 ? ret : 0;
@@ -120,7 +120,7 @@ private:
     }
   }
 
-  auto get_result() noexcept (Policy::error_code_type::value) -> std::size_t
+  auto get_result() noexcept (Policy::error_code_enable) -> std::size_t
   {
     if(async_operation_base::get_res() == 0)
     {
@@ -128,7 +128,7 @@ private:
         xynet_error_instance::make_error_code(xynet_error::eof);
     }
     
-    if constexpr (!Policy::error_code_type::value)
+    if constexpr (!Policy::error_code_enable)
     {
       if(auto& error = async_operation_base::get_error_code(); error)
       {

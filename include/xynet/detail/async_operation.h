@@ -46,8 +46,8 @@ struct error_code_storage<true>
 template<bool enable_timeout, bool enable_error_code>
 struct async_operation_policy
 {
-  using timeout_type    = std::conditional_t<enable_timeout, std::true_type, std::false_type>;
-  using error_code_type = std::conditional_t<enable_error_code, std::true_type, std::false_type>; 
+  static constexpr bool timeout_enable = enable_timeout;
+  static constexpr bool error_code_enable = enable_error_code;
 };
 
 template<typename... Ps>
@@ -181,27 +181,27 @@ public:
 
   void submit() noexcept
   {
-    if constexpr (!Policy::timeout_type::value)
+    if constexpr (!Policy::timeout_enable)
     {
       async_operation_base::get_service()->try_submit_io(static_cast<T *>(this)->try_start());
     }
     else
     {
-      static_assert(Policy::timeout_type::value);
+      static_assert(Policy::timeout_enable);
       async_operation_base::get_service()->try_submit_io(static_cast<T *>(this)->try_start(), m_timeout.get_timespec_ptr());
     }
   }
 
   decltype(auto) await_resume()
-  noexcept (Policy::error_code_type::value)
+  noexcept (Policy::error_code_enable)
   {
     return static_cast<T *>(this)->get_result();
   }
 private:
   [[no_unique_address]] 
-  detail::timeout_storage<Policy::timeout_type::value>       m_timeout;
+  detail::timeout_storage<Policy::timeout_enable>       m_timeout;
   [[no_unique_address]] 
-  detail::error_code_storage<Policy::error_code_type::value> m_error_code;
+  detail::error_code_storage<Policy::error_code_enable> m_error_code;
 };
 
 }
