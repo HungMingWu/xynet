@@ -52,7 +52,7 @@ noexcept(noexcept(operator co_await(static_cast<T&&>(value))))
 
 template<
   typename T,
-  std::enable_if_t<xynet::detail::is_awaiter<T&&>::value, int> = 0>
+  std::enable_if_t<xynet::detail::is_awaiter<T>, int> = 0>
 T&& get_awaiter_impl(T&& value, xynet::detail::any) noexcept
 {
   return static_cast<T&&>(value);
