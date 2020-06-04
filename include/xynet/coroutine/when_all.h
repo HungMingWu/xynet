@@ -31,12 +31,9 @@ namespace xynet
 //////////
 // Variadic when_all()
 
-template<
-  typename... AWAITABLES,
-  std::enable_if_t<
-    std::conjunction_v<is_awaitable<detail::unwrap_reference_t<std::remove_reference_t<AWAITABLES>>>...>,
-    int> = 0>
+template< typename... AWAITABLES>
 [[nodiscard]] auto when_all(AWAITABLES&&... awaitables)
+	requires (is_awaitable<detail::unwrap_reference_t<std::remove_reference_t<AWAITABLES>>>::value && ...)
 {
   return fmap([](auto&& taskTuple)
               {

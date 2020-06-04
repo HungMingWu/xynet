@@ -166,11 +166,10 @@ public:
     m_resultType = result_type::exception;
   }
 
-  template<
-    typename VALUE,
-    typename = std::enable_if_t<std::is_convertible_v<VALUE&&, T>>>
+  template<typename VALUE>
   void return_value(VALUE&& value)
   noexcept(std::is_nothrow_constructible_v<T, VALUE&&>)
+  requires std::is_convertible_v<VALUE&&, T>
   {
     ::new (static_cast<void*>(std::addressof(m_value))) T(std::forward<VALUE>(value));
     m_resultType = result_type::value;

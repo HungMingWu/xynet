@@ -85,16 +85,12 @@ class fmap_awaitable
   static_assert(!std::is_lvalue_reference_v<AWAITABLE>);
 public:
 
-  template<
-    typename FUNC_ARG,
-    typename AWAITABLE_ARG,
-    std::enable_if_t<
-      std::is_constructible_v<FUNC, FUNC_ARG&&> &&
-      std::is_constructible_v<AWAITABLE, AWAITABLE_ARG&&>, int> = 0>
+  template<typename FUNC_ARG, typename AWAITABLE_ARG>
   explicit fmap_awaitable(FUNC_ARG&& func, AWAITABLE_ARG&& awaitable)
   noexcept(
   std::is_nothrow_constructible_v<FUNC, FUNC_ARG&&> &&
   std::is_nothrow_constructible_v<AWAITABLE, AWAITABLE_ARG&&>)
+  requires (std::is_constructible_v<FUNC, FUNC_ARG&&> && std::is_constructible_v<AWAITABLE, AWAITABLE_ARG&&>)
     : m_func(static_cast<FUNC_ARG&&>(func))
     , m_awaitable(static_cast<AWAITABLE_ARG&&>(awaitable))
   {}
@@ -135,11 +131,8 @@ struct fmap_transform
   FUNC func;
 };
 
-template<
-  typename FUNC,
-  typename AWAITABLE,
-  std::enable_if_t<xynet::is_awaitable_v<AWAITABLE>, int> = 0>
-auto fmap(FUNC&& func, AWAITABLE&& awaitable)
+template<typename FUNC, typename AWAITABLE>
+auto fmap(FUNC&& func, AWAITABLE&& awaitable) requires xynet::is_awaitable_v<AWAITABLE>
 {
   return detail::fmap_awaitable<
     std::remove_cv_t<std::remove_reference_t<FUNC>>,

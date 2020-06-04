@@ -27,12 +27,10 @@
 
 namespace xynet
 {
-template<
-  typename... AWAITABLES,
-  std::enable_if_t<std::conjunction_v<
-    is_awaitable<detail::unwrap_reference_t<std::remove_reference_t<AWAITABLES>>>...>, int> = 0>
+template<typename... AWAITABLES>
 [[nodiscard]]
 CPPCORO_FORCE_INLINE auto when_all_ready(AWAITABLES&&... awaitables)
+	requires (is_awaitable<detail::unwrap_reference_t<std::remove_reference_t<AWAITABLES>>>::value && ...)
 {
   return detail::when_all_ready_awaitable<std::tuple<detail::when_all_task<
     typename awaitable_traits<detail::unwrap_reference_t<std::remove_reference_t<AWAITABLES>>>::await_result_t>...>>(
